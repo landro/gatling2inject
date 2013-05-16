@@ -15,29 +15,38 @@ import assertions._
 class TestSimulation extends Simulation {
 
   val httpProtocol = http
-    .baseURL("http://localhost:8080/")
+    .baseURL("http://localhost:8000/")
     .disableWarmUp
 
   val userids = csv("userids.txt").random
 
   // We actually use a custom saml library, but I've modified this to just create a createSamlAssertion instead
   def createSamlAssertion(s: String) : String = {
-    new java.lang.String(MessageDigest.getInstance("MD5").digest(s.getBytes))
+    new java.lang.String(MessageDigest.getInstance("MD5").digest(s.getBytes), "UTF8")
   }
 
 
   val injectSamlAssertion = (session: Session) =>  {
-    session.get[String]("userid").map(userid =>
+    session.getV[String]("userid").map(userid =>
       session.setAll(Map("userid" -> userid, "saml" -> createSamlAssertion(userid))))
+  }
+
+  val testFunc = (session: Session) => {
+    println(session.get("saml"))
+    println(session.get("userid"))
+    session.getV[String]("saml").map(saml =>
+      session.setAll(("key" ,"value"))
+    )
   }
 
   val scn = scenario("post userids")
     .feed(userids)
     .exec(injectSamlAssertion)
+    .exec(testFunc)
     .exec(
       http("Opprett dokumentbehandling")
         .post("service")
-        .sspFileBody("test.ssp", Map("saml" -> "${saml}"))
+        .elFileBody("test.ssp")
       )
 
   setUp(scn.inject(ramp(2 users) over (2 seconds))).protocols(httpProtocol)
