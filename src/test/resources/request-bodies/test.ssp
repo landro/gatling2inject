@@ -1,2 +1,1 @@
-userid : ${userid}
-saml : ${saml}
+<xmlstuff>userid : ${userid} saml : ${saml}</xmlstuff>

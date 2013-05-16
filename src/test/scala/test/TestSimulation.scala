@@ -14,8 +14,13 @@ import assertions._
 
 class TestSimulation extends Simulation {
 
+  System.setProperty("http.proxyHost", "localhost")
+  System.setProperty("http.proxyPort", "8888")
+
+
+
   val httpProtocol = http
-    .baseURL("http://localhost:8000/")
+    .baseURL("http://localhost:8080/")
     .disableWarmUp
 
   val userids = csv("userids.txt").random
@@ -44,11 +49,13 @@ class TestSimulation extends Simulation {
     .exec(injectSamlAssertion)
     .exec(testFunc)
     .exec(
-      http("Opprett dokumentbehandling")
+      http("Call service")
         .post("service")
-        .elFileBody("test.ssp")
+        .headers(Map("Content-Type" -> "multipart/related; type=\"application/xop+xml\";"))
+        .elFileBodyPart("nameofbodypart", "test.ssp", "application/xml" )
+        .rawFileBodyPart("part2", "test.pdf", "application/pdf", "somecontentid" )
       )
 
-  setUp(scn.inject(ramp(2 users) over (2 seconds))).protocols(httpProtocol)
+  setUp(scn.inject(ramp(1 users) over (1 second))).protocols(httpProtocol)
 
 }
