@@ -1,15 +1,8 @@
 package test
 
 import io.gatling.core.Predef._
-import io.gatling.core.session.Expression
 import io.gatling.http.Predef._
-import io.gatling.jdbc.Predef._
-import io.gatling.http.Headers.Names._
-import io.gatling.http.Headers.Values._
-import java.security.MessageDigest
 import scala.concurrent.duration._
-import bootstrap._
-import assertions._
 
 
 class TestSimulation extends Simulation {
